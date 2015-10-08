@@ -56,7 +56,9 @@ class Gallery extends React.Component {
         // if we want to hook into dirty checking, we need to find a way of refreshing
         // all loaded data not just the first page again...
 
-        var $content = $('.cms-content-fields');
+        var $content = $('.cms-content-fields'),
+            $sort = $('.gallery__header__sort .dropdown'),
+            self = this;
 
         if ($content.length) {
             $content.on('scroll', (event) => {
@@ -66,6 +68,10 @@ class Gallery extends React.Component {
             });
         }
 
+        $sort.change(function () {
+            self.handleSort($(this).val());
+        });
+
         itemStore.addChangeListener(this.onChange);
     }
 
@@ -74,6 +80,8 @@ class Gallery extends React.Component {
     }
 
     render() {
+        var ReactTestUtils = React.addons.TestUtils;
+
         if (this.state.editing) {
             let editorComponent = this.getEditorComponent();
 
@@ -95,23 +103,27 @@ class Gallery extends React.Component {
                 </button>;
             }
 
-            var sorts = <div>
-                <a onClick={this.handleSortTitle.bind(this)}>
-                    sort by name
-                </a>
-                <a onClick={this.handleSortCreated.bind(this)}>
-                    sort by created
-                </a>
-                <a onClick={this.handleSortType.bind(this)}>
-                    sort by type
-                </a>
+            var sorts = <div className="gallery__header__sort fieldholder-small" style={{width: '160px'}}>
+                <select className="dropdown no-change-track">
+                    <option value="title">
+                        name
+                    </option>
+                    <option value="created">
+                        created
+                    </option>
+                    <option value="type">
+                        type
+                    </option>
+                </select>
             </div>;
 
             return (
                 <div className='gallery'>
-                    {button}
-                    {sorts}
-                    <div className='gallery__items'>
+                    <div className="gallery__header">
+                        {button}
+                        {sorts}
+                    </div>
+                    <div className='gallery__header__items'>
                         {items}
                     </div>
                 </div>
@@ -125,16 +137,8 @@ class Gallery extends React.Component {
         galleryActions.navigate(navigation[1]);
     }
 
-    handleSortTitle() {
-        galleryActions.sort("title");
-    }
-
-    handleSortCreated() {
-        galleryActions.sort("created");
-    }
-
-    handleSortType() {
-        galleryActions.sort("type");
+    handleSort(sortBy) {
+        galleryActions.sort(sortBy);
     }
 
     /**
