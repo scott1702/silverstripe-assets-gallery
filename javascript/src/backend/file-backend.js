@@ -30,7 +30,7 @@ export default class FileBackend extends Events {
 
 		this.page = 1;
 
-		this.request('POST', this.fetch_url, { id: id }).then((json) => {
+		return this.request('POST', this.fetch_url, { id: id }).then((json) => {
 			this.emit('onFetchData', json);
 		});
 	}
@@ -38,7 +38,7 @@ export default class FileBackend extends Events {
 	search() {
 		this.page = 1;
 
-		this.request('GET', this.search_url).then((json) => {
+		return this.request('GET', this.search_url).then((json) => {
 			this.emit('onSearchData', json);
 		});
 	}
@@ -46,7 +46,7 @@ export default class FileBackend extends Events {
 	more() {
 		this.page++;
 
-		this.request('GET', this.search_url).then((json) => {
+		return this.request('GET', this.search_url).then((json) => {
 			this.emit('onMoreData', json);
 		});
 	}
@@ -57,7 +57,7 @@ export default class FileBackend extends Events {
 
 		this.persistFolderFilter(folder);
 
-		this.request('GET', this.search_url).then((json) => {
+		return this.request('GET', this.search_url).then((json) => {
 			this.emit('onNavigateData', json);
 		});
 	}
@@ -80,7 +80,7 @@ export default class FileBackend extends Events {
 			filesToDelete = ids;
 		}
 
-		this.request('DELETE', this.delete_url, {
+		return this.request('DELETE', this.delete_url, {
 			'ids': filesToDelete
 		}).then(() => {
 			this.emit('onDeleteData', filesToDelete[i]);
@@ -105,7 +105,7 @@ export default class FileBackend extends Events {
 			updates[field.name] = field.value;
 		});
 
-		this.request('POST', this.update_url, updates).then(() => {
+		return this.request('POST', this.update_url, updates).then(() => {
 			this.emit('onSaveData', id, updates);
 		});
 	}

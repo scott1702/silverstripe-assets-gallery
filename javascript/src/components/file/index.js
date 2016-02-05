@@ -12,9 +12,9 @@ class FileComponent extends SilverStripeComponent {
 	constructor(props) {
 		super(props);
 
-		this.onFileNavigate = this.onFileNavigate.bind(this);
-		this.onFileEdit = this.onFileEdit.bind(this);
-		this.onFileDelete = this.onFileDelete.bind(this);
+		this.handleFileNavigate = this.handleFileNavigate.bind(this);
+		this.handleFileEdit = this.handleFileEdit.bind(this);
+		this.handleFileDelete = this.handleFileDelete.bind(this);
 		this.handleClick = this.handleClick.bind(this);
 		this.handleKeyDown = this.handleKeyDown.bind(this);
 		this.preventFocus = this.preventFocus.bind(this);
@@ -22,38 +22,41 @@ class FileComponent extends SilverStripeComponent {
 	}
 
 	handleClick(event) {
-		this.onFileNavigate(event);
+		this.handleFileNavigate(event);
 	}
 
-	onFileNavigate(event) {
+	handleFileNavigate(event) {
 		if (this.isFolder()) {
-			this.props.onFileNavigate(this.props, event)
+			this.props.handleFileNavigate(this.props, event)
 			return;
 		}
 
 		if (this.props.canEdit) {
-			this.onFileEdit(event);
+			this.handleFileEdit(event);
 		}
 	}
 
 	onFileSelect(event) {
 		event.stopPropagation(); //stop triggering click on root element
 
-		if (this.props.gallery.selectedFiles.indexOf(this.props.id) === -1) {
+		if (this.props.selectedFiles.indexOf(this.props.id) === -1) {
 			this.props.actions.selectFiles([this.props.id]);
 		} else {
 			this.props.actions.deselectFiles([this.props.id]);
 		}
 	}
 
-	onFileEdit(event) {
-		event.stopPropagation(); //stop triggering click on root element
-		this.props.actions.setEditing(this.props.gallery.files.find(file => file.id === this.props.id));
+	handleFileEdit(event) {
+		const file = this.props.files.find(file => file.id === this.props.id);
+		const path = constants.EDITING_ROUTE.replace(':id', file.id);
+
+		this.props.actions.setEditing(file);
+		window.ss.router.show(path);
 	}
 
-	onFileDelete(event) {
+	handleFileDelete(event) {
 		event.stopPropagation(); //stop triggering click on root element
-		this.props.onFileDelete(this.props, event)
+		this.props.handleFileDelete(this.props, event)
 	}
 
 	isFolder() {
@@ -79,7 +82,7 @@ class FileComponent extends SilverStripeComponent {
 	}
 	
 	isSelected() {
-		return this.props.gallery.selectedFiles.indexOf(this.props.id) > -1;
+		return this.props.selectedFiles.indexOf(this.props.id) > -1;
 	}
 
 	getItemClassNames() {
@@ -109,7 +112,7 @@ class FileComponent extends SilverStripeComponent {
 
 		//If return is pressed, navigate folder
 		if (this.props.returnKey === event.keyCode) {
-			this.onFileNavigate(event);
+			this.handleFileNavigate(event);
 		}
 	}
 
@@ -151,9 +154,8 @@ FileComponent.propTypes = {
 		width: React.PropTypes.number,
 		height: React.PropTypes.number
 	}),
-	onFileNavigate: React.PropTypes.func,
-	onFileEdit: React.PropTypes.func,
-	onFileDelete: React.PropTypes.func,
+	handleFileNavigate: React.PropTypes.func,
+	handleFileDelete: React.PropTypes.func,
 	spaceKey: React.PropTypes.number,
 	returnKey: React.PropTypes.number,
 	onFileSelect: React.PropTypes.func,
@@ -164,7 +166,9 @@ FileComponent.propTypes = {
 
 function mapStateToProps(state) {
 	return {
-		gallery: state.assetAdmin.gallery
+		files: state.assetAdmin.gallery.files,
+		focus: state.assetAdmin.gallery.focus,
+		selectedFiles: state.assetAdmin.gallery.selectedFiles
 	}
 }
 

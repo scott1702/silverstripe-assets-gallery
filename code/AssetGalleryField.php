@@ -23,6 +23,7 @@ class AssetGalleryField extends FormField
      * @var array
      */
     private static $allowed_actions = array(
+        'item',
         'fetch',
         'search',
         'update',
@@ -30,6 +31,7 @@ class AssetGalleryField extends FormField
     );
 
     private static $url_handlers = array(
+        'GET item/$ID/$Action' => 'item',
         'GET fetch' => 'fetch',
         'GET search' => 'search',
         'PUT update' => 'update',
@@ -123,6 +125,18 @@ class AssetGalleryField extends FormField
     public function Type()
     {
         return 'asset-gallery';
+    }
+
+    /**
+     * Handles routing to a file or folder.
+     *
+     * @param SS_HTTPRequest $request
+     *
+     * @return SS_HTTPResponse
+     */
+    public function item(SS_HTTPRequest $request)
+    {
+        return $this->getForm()->getController();
     }
 
     /**

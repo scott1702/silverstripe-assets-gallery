@@ -3,17 +3,17 @@ import { GALLERY } from '../action-types';
 import CONSTANTS from '../../constants.js';
 
 const initialState = {
-    count: 0, // The number of files in the current view
-    editing: false,
-    files: [],
-    selectedFiles: [],
-    editing: false,
-    focus: false,
     bulkActions: {
         placeholder: CONSTANTS.BULK_ACTIONS_PLACEHOLDER,
         options: CONSTANTS.BULK_ACTIONS
     },
-    editorFields: []
+    count: 0, // The number of files in the current view
+    editing: null, // The file being edited
+    editorFields: [], // The input fields for editing files. Hardcoded until form field schema is implemented.
+    files: [],
+    focus: false,
+    path: null, // The current location path the app is on
+    selectedFiles: []
 };
 
 /**
@@ -112,7 +112,7 @@ export default function galleryReducer(state = initialState, action) {
             return deepFreeze(Object.assign({}, state, {
                 editorFields: action.payload.editorFields
             }));
-        
+
         case GALLERY.UPDATE_EDITOR_FIELD:
             let fieldIndex = state.editorFields.map(field => field.name).indexOf(action.payload.updates.name),
                 updatedField = Object.assign({}, state.editorFields[fieldIndex], action.payload.updates);
@@ -120,7 +120,7 @@ export default function galleryReducer(state = initialState, action) {
             return deepFreeze(Object.assign({}, state, {
                 editorFields: state.editorFields.map(field => field.name === updatedField.name ? updatedField : field)
             }));
-        
+
         case GALLERY.SORT_FILES:
             let folders = state.files.filter(file => file.type === 'folder'),
                 files = state.files.filter(file => file.type !== 'folder');
@@ -128,6 +128,12 @@ export default function galleryReducer(state = initialState, action) {
             return deepFreeze(Object.assign({}, state, {
                 files: folders.sort(action.payload.comparator).concat(files.sort(action.payload.comparator))
             }));
+
+        case GALLERY.SET_PATH:
+            return deepFreeze(Object.assign({}, state, {
+                path: action.payload.path
+            }));
+
         default:
             return state;
     }
