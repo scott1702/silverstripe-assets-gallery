@@ -43,8 +43,6 @@ class GalleryContainer extends SilverStripeComponent {
 	constructor(props) {
 		super(props);
 
-		this.folders = [props.initial_folder];
-
 		this.sort = 'name';
 		this.direction = 'asc';
 
@@ -116,7 +114,7 @@ class GalleryContainer extends SilverStripeComponent {
 	}
 
 	getBackButton() {
-		if (this.folders.length > 1) {
+		if (this.props.gallery.viewingFolder) {
 			return <button
 				className='gallery__back ss-ui-button ui-button ui-widget ui-state-default ui-corner-all font-icon-level-up no-text'
 				onClick={this.handleBackClick}
@@ -195,6 +193,18 @@ class GalleryContainer extends SilverStripeComponent {
 		</div>;
 	}
 
+	handleEnterRoute(ctx, next) {
+		var viewingFolder = false;
+
+		if (ctx.params.action === 'show' && typeof ctx.params.id !== 'undefined') {
+			viewingFolder = true;
+		}
+
+		this.props.actions.setViewingFolder(viewingFolder);
+
+		next();
+	}
+
 	/**
 	 * Handles deleting a file or folder.
 	 *
@@ -223,10 +233,8 @@ class GalleryContainer extends SilverStripeComponent {
 	 * @param object folder - The folder that's being activated.
 	 */
 	handleFolderActivate(event, folder) {
-		this.folders.push(folder.filename);
-		this.props.backend.navigate(folder.filename);
-
 		this.props.actions.deselectFiles();
+		window.ss.router.show(CONSTANTS.FOLDER_ROUTE + '/' + folder.id);
 	}
 
 	/**
@@ -256,21 +264,13 @@ class GalleryContainer extends SilverStripeComponent {
 
 	handleMoreClick(event) {
 		event.stopPropagation();
-
-		this.props.backend.more();
-
 		event.preventDefault();
+		this.props.backend.more();
 	}
 
 	handleBackClick(event) {
-		if (this.folders.length > 1) {
-			this.folders.pop();
-			this.props.backend.navigate(this.folders[this.folders.length - 1]);
-		}
-
-		this.props.actions.deselectFiles();
-
 		event.preventDefault();
+		this.props.actions.deselectFiles();
 	}
 }
 

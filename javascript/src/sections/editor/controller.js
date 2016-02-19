@@ -59,7 +59,7 @@ class EditorContainer extends SilverStripeComponent {
 	}
 
 	onCancel(event) {
-		window.ss.router.show(CONSTANTS.GALLERY_ROUTE);
+		window.ss.router.show(CONSTANTS.HOME_ROUTE);
 	}
 
 	handleEnterRoute(ctx, next) {

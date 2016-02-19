@@ -18,7 +18,7 @@ function getGalleryProps() {
 		current_folder: currentFolder,
 		initial_folder: initialFolder,
 		name: $('.asset-gallery').data('asset-gallery-name'),
-		route: '/assets'
+		route: '/assets/:action?/:id?'
 	};
 }
 
@@ -37,6 +37,9 @@ $.entwine('ss', function($) {
 				</Provider>,
 				this[0]
 			);
+
+			// Catch any routes that aren't handled by components.
+			window.ss.router('*', () => {});
 		},
 		onremove: function () {
 			ReactDOM.unmountComponentAtNode(this[0]);

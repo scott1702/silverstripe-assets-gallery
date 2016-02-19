@@ -13,7 +13,8 @@ const initialState = {
     files: [],
     focus: false,
     path: null, // The current location path the app is on
-    selectedFiles: []
+    selectedFiles: [],
+    viewingFolder: false
 };
 
 /**
@@ -132,6 +133,11 @@ export default function galleryReducer(state = initialState, action) {
         case GALLERY.SET_PATH:
             return deepFreeze(Object.assign({}, state, {
                 path: action.payload.path
+            }));
+
+        case GALLERY.SET_VIEWING_FOLDER:
+            return deepFreeze(Object.assign({}, state, {
+                viewingFolder: action.payload.viewingFolder
             }));
 
         default:

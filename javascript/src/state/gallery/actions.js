@@ -146,3 +146,17 @@ export function sortFiles(comparator) {
         });
     }
 }
+
+/**
+ * Sets wether or not the user is currently inside a folder.
+ *
+ * @param boolean viewingFolder
+ */
+export function setViewingFolder(viewingFolder) {
+    return (dispatch, getState) => {
+        return dispatch({
+            type: GALLERY.SET_VIEWING_FOLDER,
+            payload: { viewingFolder }
+        });
+    }
+}
