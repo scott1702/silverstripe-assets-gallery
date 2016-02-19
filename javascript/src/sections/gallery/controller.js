@@ -71,8 +71,11 @@ class GalleryContainer extends SilverStripeComponent {
 			}
 		];
 
-		this.handleFileNavigate = this.handleFileNavigate.bind(this);
-		this.handleFileDelete = this.handleFileDelete.bind(this);
+		this.handleFolderActivate = this.handleFolderActivate.bind(this);
+		this.handleFileActivate = this.handleFileActivate.bind(this);
+		this.handleToggleSelect = this.handleToggleSelect.bind(this);
+
+		this.handleItemDelete = this.handleItemDelete.bind(this);
 		this.handleBackClick = this.handleBackClick.bind(this);
 		this.handleMoreClick = this.handleMoreClick.bind(this);
 		this.handleSort = this.handleSort.bind(this);
@@ -160,21 +163,29 @@ class GalleryContainer extends SilverStripeComponent {
 			<div className='gallery__folders'>
 				{this.props.gallery.files.map((file, i) => {
 					if (file.type === 'folder') {
-						return <FileComponent key={i} {...file}
+						return <FileComponent
+							key={i}
+							item={file}
+							selected={this.itemIsSelected(file.id)}
 							spaceKey={CONSTANTS.SPACE_KEY_CODE}
 							returnKey={CONSTANTS.RETURN_KEY_CODE}
-							handleFileDelete={this.handleFileDelete}
-							handleFileNavigate={this.handleFileNavigate} />;
+							handleDelete={this.handleItemDelete}
+							handleToggleSelect={this.handleToggleSelect}
+							handleActivate={this.handleFolderActivate} />;
 					}})}
 			</div>
 			<div className='gallery__files'>
 				{this.props.gallery.files.map((file, i) => {
 					if (file.type !== 'folder') {
-						return <FileComponent key={i} {...file}
+						return <FileComponent
+							key={i}
+							item={file}
+							selected={this.itemIsSelected(file.id)}
 							spaceKey={CONSTANTS.SPACE_KEY_CODE}
 							returnKey={CONSTANTS.RETURN_KEY_CODE}
-							handleFileDelete={this.handleFileDelete}
-							handleFileNavigate={this.handleFileNavigate} />;
+							handleDelete={this.handleItemDelete}
+							handleToggleSelect={this.handleToggleSelect}
+							handleActivate={this.handleFileActivate} />;
 					}})}
 			</div>
 			{this.getNoItemsNotice()}
@@ -184,19 +195,63 @@ class GalleryContainer extends SilverStripeComponent {
 		</div>;
 	}
 
-	handleFileDelete(file, event) {
+	/**
+	 * Handles deleting a file or folder.
+	 *
+	 * @param object item - The file or folder to delete.
+	 */
+	handleItemDelete(event, item) {
 		if (confirm(i18n._t('AssetGalleryField.CONFIRMDELETE'))) {
-			this.props.backend.delete(file.id);
+			this.props.backend.delete(item.id);
 		}
-
-		event.stopPropagation();
 	}
 
-	handleFileNavigate(file) {
-		this.folders.push(file.filename);
-		this.props.backend.navigate(file.filename);
+	/**
+	 * Checks if a file or folder is currently selected.
+	 *
+	 * @param number id - The id of the file or folder to check.
+	 * @return boolean
+	 */
+	itemIsSelected(id) {
+		return this.props.gallery.selectedFiles.indexOf(id) > -1;
+	}
+
+	/**
+	 * Handles a user drilling down into a folder.
+	 *
+	 * @param object event - Event object.
+	 * @param object folder - The folder that's being activated.
+	 */
+	handleFolderActivate(event, folder) {
+		this.folders.push(folder.filename);
+		this.props.backend.navigate(folder.filename);
 
 		this.props.actions.deselectFiles();
+	}
+
+	/**
+	 * Handles a user activating the file editor.
+	 *
+	 * @param object event - Event object.
+	 * @param object file - The file that's being activated.
+	 */
+	handleFileActivate(event, file) {
+		this.props.actions.setEditing(file);
+		window.ss.router.show(CONSTANTS.EDITING_ROUTE.replace(':id', file.id));
+	}
+
+	/**
+	 * Handles the user toggling the selected/deselected state of a file or folder.
+	 *
+	 * @param object event - Event object.
+	 * @param object item - The item being selected/deselected
+	 */
+	handleToggleSelect(event, item) {
+		if (this.props.gallery.selectedFiles.indexOf(item.id) === -1) {
+			this.props.actions.selectFiles([item.id]);
+		} else {
+			this.props.actions.deselectFiles([item.id]);
+		}
 	}
 
 	handleMoreClick(event) {
@@ -225,8 +280,7 @@ GalleryContainer.propTypes = {
 
 function mapStateToProps(state) {
 	return {
-		gallery: state.assetAdmin.gallery,
-		path: state.assetAdmin.gallery.path
+		gallery: state.assetAdmin.gallery
 	}
 }
 

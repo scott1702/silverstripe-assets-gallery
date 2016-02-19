@@ -1,71 +1,51 @@
 import $ from 'jQuery';
 import i18n from 'i18n';
 import React from 'react';
-import ReactDOM from 'react-dom';
-import { connect } from 'react-redux';
-import { bindActionCreators } from 'redux';
-import * as galleryActions from '../../state/gallery/actions';
 import constants from '../../constants';
 import SilverStripeComponent from 'silverstripe-component';
 
 class FileComponent extends SilverStripeComponent {
+
 	constructor(props) {
 		super(props);
 
-		this.handleFileNavigate = this.handleFileNavigate.bind(this);
-		this.handleFileEdit = this.handleFileEdit.bind(this);
-		this.handleFileDelete = this.handleFileDelete.bind(this);
-		this.handleClick = this.handleClick.bind(this);
+		this.handleToggleSelect = this.handleToggleSelect.bind(this);
+		this.handleDelete = this.handleDelete.bind(this);
+		this.handleActivate = this.handleActivate.bind(this);
 		this.handleKeyDown = this.handleKeyDown.bind(this);
 		this.preventFocus = this.preventFocus.bind(this);
-		this.onFileSelect = this.onFileSelect.bind(this);
 	}
 
-	handleClick(event) {
-		this.handleFileNavigate(event);
+	/**
+	 * Wrapper around this.props.handleActivate
+	 *
+	 * @param object event - Event object.
+	 */
+	handleActivate(event) {
+		this.props.handleActivate(event, this.props.item);
 	}
 
-	handleFileNavigate(event) {
-		if (this.isFolder()) {
-			this.props.handleFileNavigate(this.props, event)
-			return;
-		}
-
-		if (this.props.canEdit) {
-			this.handleFileEdit(event);
-		}
+	/**
+	 * Wrapper around this.props.handleToggleSelect
+	 *
+	 * @param object event - Event object.
+	 */
+	handleToggleSelect(event) {
+		this.props.handleToggleSelect(event, this.props.item);
 	}
 
-	onFileSelect(event) {
-		event.stopPropagation(); //stop triggering click on root element
-
-		if (this.props.selectedFiles.indexOf(this.props.id) === -1) {
-			this.props.actions.selectFiles([this.props.id]);
-		} else {
-			this.props.actions.deselectFiles([this.props.id]);
-		}
-	}
-
-	handleFileEdit(event) {
-		const file = this.props.files.find(file => file.id === this.props.id);
-		const path = constants.EDITING_ROUTE.replace(':id', file.id);
-
-		this.props.actions.setEditing(file);
-		window.ss.router.show(path);
-	}
-
-	handleFileDelete(event) {
-		event.stopPropagation(); //stop triggering click on root element
-		this.props.handleFileDelete(this.props, event)
-	}
-
-	isFolder() {
-		return this.props.category === 'folder';
+	/**
+	 * Wrapper around this.props.handleDelete
+	 *
+	 * @param object event - Event object.
+	 */
+	handleDelete(event) {
+		this.props.handleDelete(event, this.props.item);
 	}
 
 	getThumbnailStyles() {
-		if (this.props.category === 'image') {
-			return {'backgroundImage': 'url(' + this.props.url + ')'};
+		if (this.props.item.category === 'image') {
+			return {'backgroundImage': 'url(' + this.props.item.url + ')'};
 		}
 
 		return {};
@@ -80,15 +60,11 @@ class FileComponent extends SilverStripeComponent {
 
 		return thumbnailClassNames;
 	}
-	
-	isSelected() {
-		return this.props.selectedFiles.indexOf(this.props.id) > -1;
-	}
 
 	getItemClassNames() {
-		var itemClassNames = 'item item--' + this.props.category;
+		var itemClassNames = 'item item--' + this.props.item.category;
 
-		if (this.isSelected()) {
+		if (this.props.selected) {
 			itemClassNames += ' item--selected';
 		}
 
@@ -96,7 +72,7 @@ class FileComponent extends SilverStripeComponent {
 	}
 
 	isImageLargerThanThumbnail() {
-		let dimensions = this.props.attributes.dimensions;
+		let dimensions = this.props.item.attributes.dimensions;
 
 		return dimensions.height > constants.THUMBNAIL_HEIGHT || dimensions.width > constants.THUMBNAIL_WIDTH;
 	}
@@ -106,18 +82,21 @@ class FileComponent extends SilverStripeComponent {
 
 		//If space is pressed, select file
 		if (this.props.spaceKey === event.keyCode) {
-			event.preventDefault(); //Stop page from scrolling
-			this.onFileSelect(event);
+			this.handleToggleSelect(event);
 		}
 
 		//If return is pressed, navigate folder
 		if (this.props.returnKey === event.keyCode) {
-			this.handleFileNavigate(event);
+			this.handleActivate(event, this.props.item);
 		}
 	}
 
+	/**
+	 * Avoids the browser's default focus state when selecting an item.
+	 *
+	 * @param object event - Event object.
+	 */
 	preventFocus(event) {
-		//To avoid browser's default focus state when selecting an item
 		event.preventDefault();
 	}
 
@@ -130,52 +109,36 @@ class FileComponent extends SilverStripeComponent {
 			title={i18n._t('AssetGalleryField.SELECT')}
 			tabIndex='-1'
 			onMouseDown={this.preventFocus}
-			onClick={this.onFileSelect}>
+			onClick={this.handleToggleSelect}>
 		</button>;
 
-		return <div className={this.getItemClassNames()} data-id={this.props.id} tabIndex="0" onKeyDown={this.handleKeyDown} onClick={this.handleClick} >
-			<div ref="thumbnail" className={this.getThumbnailClassNames()} style={this.getThumbnailStyles()}>
-				<div className='item--overlay [ font-icon-edit ]'> View
+		return (
+			<div
+				className={this.getItemClassNames()}
+				data-id={this.props.item.id}
+				tabIndex="0"
+				onKeyDown={this.handleKeyDown}
+				onClick={this.handleActivate}>
+				<div ref="thumbnail" className={this.getThumbnailClassNames()} style={this.getThumbnailStyles()}>
+					<div className='item--overlay [ font-icon-edit ]'>View</div>
+				</div>
+				<div className='item__title' ref="title">
+					{this.props.item.title}
+					{selectButton}
 				</div>
 			</div>
-			<div className='item__title' ref="title">{this.props.title}
-				{selectButton}
-			</div>
-		</div>;
+		);
 	}
 }
 
 FileComponent.propTypes = {
-	id: React.PropTypes.number,
-	title: React.PropTypes.string,
-	category: React.PropTypes.string,
-	url: React.PropTypes.string,
-	dimensions: React.PropTypes.shape({
-		width: React.PropTypes.number,
-		height: React.PropTypes.number
-	}),
-	handleFileNavigate: React.PropTypes.func,
-	handleFileDelete: React.PropTypes.func,
+	item: React.PropTypes.object.isRequired,
+	selected: React.PropTypes.bool.isRequired,
 	spaceKey: React.PropTypes.number,
 	returnKey: React.PropTypes.number,
-	onFileSelect: React.PropTypes.func,
-	selected: React.PropTypes.bool,
-	canEdit: React.PropTypes.bool,
-	canDelete: React.PropTypes.bool
+	handleActivate: React.PropTypes.func.isRequired,
+	handleToggleSelect: React.PropTypes.func.isRequired,
+	handleDelete: React.PropTypes.func.isRequired
 };
 
-function mapStateToProps(state) {
-	return {
-		files: state.assetAdmin.gallery.files,
-		focus: state.assetAdmin.gallery.focus,
-		selectedFiles: state.assetAdmin.gallery.selectedFiles
-	}
-}
-
-function mapDispatchToProps(dispatch) {
-	return {
-		actions: bindActionCreators(galleryActions, dispatch)
-	}
-}
-
-export default connect(mapStateToProps, mapDispatchToProps)(FileComponent);
+export default FileComponent
