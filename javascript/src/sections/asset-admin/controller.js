@@ -114,6 +114,7 @@ class AssetAdminContainer extends SilverStripeComponent {
     }
 
     handleBackendDelete(data) {
+        this.props.actions.deselectFiles(data);
         this.props.actions.removeFiles(data);
     }
 
@@ -123,7 +124,7 @@ class AssetAdminContainer extends SilverStripeComponent {
     }
 
     handleBackendMore(data) {
-        this.props.actions.addFiles(this.props.gallery.files.concat(data.files), data.count);
+        this.props.actions.addFiles(this.props.assetAdmin.gallery.files.concat(data.files), data.count);
     }
 
     handleBackendSearch(data) {

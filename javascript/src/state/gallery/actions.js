@@ -19,7 +19,7 @@ export function addFiles(files, count) {
 /**
  * Removes files from the state. If no param is passed all files are removed
  *
- * @param Array id - Array of file ids.
+ * @param array ids - Array of file ids.
  */
 export function removeFiles(ids) {
     return (dispatch, getState) => {

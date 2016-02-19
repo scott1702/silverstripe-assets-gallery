@@ -70,20 +70,17 @@ export default class FileBackend extends Events {
 		this.$folder.val(folder);
 	}
 
+	/**
+	 * Deletes files on the server based on the given ids
+	 *
+	 * @param array ids - an array of file ids to delete on the server
+	 * @returns object - promise
+	 */
 	delete(ids) {
-		var filesToDelete = [];
-
-		// Allows users to pass one or more ids to delete.
-		if (Object.prototype.toString.call(ids) !== '[object Array]') {
-			filesToDelete.push(ids);
-		} else {
-			filesToDelete = ids;
-		}
-
 		return this.request('DELETE', this.delete_url, {
-			'ids': filesToDelete
+			'ids': ids
 		}).then(() => {
-			this.emit('onDeleteData', filesToDelete[i]);
+			this.emit('onDeleteData', ids);
 		});
 	}
 
