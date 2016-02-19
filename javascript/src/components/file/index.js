@@ -22,6 +22,7 @@ class FileComponent extends SilverStripeComponent {
 	 * @param object event - Event object.
 	 */
 	handleActivate(event) {
+		event.stopPropagation();
 		this.props.handleActivate(event, this.props.item);
 	}
 
@@ -31,6 +32,7 @@ class FileComponent extends SilverStripeComponent {
 	 * @param object event - Event object.
 	 */
 	handleToggleSelect(event) {
+		event.stopPropagation();
 		this.props.handleToggleSelect(event, this.props.item);
 	}
 
