@@ -58,6 +58,8 @@ class AssetAdminContainer extends SilverStripeComponent {
                     this.props.actions.setEditing(files.filter((file) => file.id === parseInt(params.id, 10))[0]);
                 }
 
+                // If we're viewing a folder get the 'up level' id and set it in state.
+
                 this.props.actions.setPath(currentPath);
 
             }.bind(this));
@@ -95,7 +97,13 @@ class AssetAdminContainer extends SilverStripeComponent {
     }
 
     handleEnterRoute(ctx, next) {
+        
         this.props.actions.setPath(ctx.path);
+        // Set path params
+        // params = {
+        //   folderId: ctx.params.id
+        // }
+        //
         next();
     }
 

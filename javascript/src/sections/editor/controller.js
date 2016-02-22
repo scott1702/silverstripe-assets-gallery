@@ -70,12 +70,6 @@ class EditorContainer extends SilverStripeComponent {
 		}
 	}
 
-	handleEnterRoute(ctx, next) {
-		if (this.props.file === null) {
-			this.props.actions.setEditing(this.props.files.filter((file) => file.id === parseInt(ctx.params.id, 10))[0]);
-		}
-	}
-
 	handleExitRoute(ctx, next) {
 		this.props.actions.setEditing(null);
 	}

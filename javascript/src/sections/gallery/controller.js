@@ -195,7 +195,7 @@ class GalleryContainer extends SilverStripeComponent {
 
 	handleEnterRoute(ctx, next) {
 		var viewingFolder = false;
-
+		debugger;
 		if (ctx.params.action === 'show' && typeof ctx.params.id !== 'undefined') {
 			viewingFolder = true;
 		}
@@ -234,6 +234,7 @@ class GalleryContainer extends SilverStripeComponent {
 	 */
 	handleFolderActivate(event, folder) {
 		this.props.actions.deselectFiles();
+		this.props.actions.setPath(CONSTANTS.FOLDER_ROUTE + '/' + folder.id);
 		window.ss.router.show(CONSTANTS.FOLDER_ROUTE + '/' + folder.id);
 	}
 
