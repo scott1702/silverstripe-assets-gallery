@@ -114,7 +114,7 @@ class GalleryContainer extends SilverStripeComponent {
 	}
 
 	getBackButton() {
-		if (this.props.gallery.viewingFolder) {
+		if (this.props.gallery.parentFolderID !== null) {
 			return <button
 				className='gallery__back ss-ui-button ui-button ui-widget ui-state-default ui-corner-all font-icon-level-up no-text'
 				onClick={this.handleBackClick}
@@ -195,7 +195,7 @@ class GalleryContainer extends SilverStripeComponent {
 
 	handleEnterRoute(ctx, next) {
 		var viewingFolder = false;
-		debugger;
+
 		if (ctx.params.action === 'show' && typeof ctx.params.id !== 'undefined') {
 			viewingFolder = true;
 		}
@@ -234,8 +234,10 @@ class GalleryContainer extends SilverStripeComponent {
 	 */
 	handleFolderActivate(event, folder) {
 		this.props.actions.deselectFiles();
+		this.props.actions.removeFiles();
 		this.props.actions.setPath(CONSTANTS.FOLDER_ROUTE + '/' + folder.id);
 		window.ss.router.show(CONSTANTS.FOLDER_ROUTE + '/' + folder.id);
+		this.props.backend.fetch(folder.id)
 	}
 
 	/**
@@ -272,6 +274,10 @@ class GalleryContainer extends SilverStripeComponent {
 	handleBackClick(event) {
 		event.preventDefault();
 		this.props.actions.deselectFiles();
+		this.props.actions.removeFiles();
+		this.props.actions.setPath(CONSTANTS.FOLDER_ROUTE + '/' + this.props.gallery.parentFolderID);
+		window.ss.router.show(CONSTANTS.FOLDER_ROUTE + '/' + this.props.gallery.parentFolderID);
+		this.props.backend.fetch(this.props.gallery.parentFolderID);
 	}
 }
 

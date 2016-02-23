@@ -12,6 +12,7 @@ const initialState = {
     editorFields: [], // The input fields for editing files. Hardcoded until form field schema is implemented.
     files: [],
     focus: false,
+    parentFolderID: null,
     path: null, // The current location path the app is on
     selectedFiles: [],
     viewingFolder: false
@@ -138,6 +139,11 @@ export default function galleryReducer(state = initialState, action) {
         case GALLERY.SET_VIEWING_FOLDER:
             return deepFreeze(Object.assign({}, state, {
                 viewingFolder: action.payload.viewingFolder
+            }));
+            
+        case GALLERY.SET_PARENT_FOLDER_ID:
+            return deepFreeze(Object.assign({}, state, {
+                parentFolderID: action.payload.parentFolderID
             }));
 
         default:

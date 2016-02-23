@@ -11,6 +11,7 @@ use Requirements;
 use SS_HTTPRequest;
 use SS_HTTPResponse;
 use DataList;
+use Debug;
 
 /**
  * Class AssetGalleryField
@@ -25,6 +26,7 @@ class AssetGalleryField extends FormField
     private static $allowed_actions = array(
         'item',
         'fetch',
+        'fetchFile',
         'search',
         'update',
         'delete',
@@ -33,6 +35,7 @@ class AssetGalleryField extends FormField
     private static $url_handlers = array(
         'GET item/$ID/$Action' => 'item',
         'GET fetch' => 'fetch',
+        'GET fetchFile' => 'fetchFile',
         'GET search' => 'search',
         'PUT update' => 'update',
         'DELETE delete' => 'delete',
@@ -48,7 +51,12 @@ class AssetGalleryField extends FormField
     /**
      * @var string
      */
-    protected $currentPath;
+    protected $currentFolder;
+    
+    /**
+     * @var string
+     */
+    protected $idFromURL;
 
     /**
      * @var int
@@ -86,8 +94,8 @@ class AssetGalleryField extends FormField
     /**
      * Set the data source.
      *
-     * @param  DataList                 $list
-     *                                        @return $this
+     * @param  DataList $list
+     * @return $this
      * @throws InvalidArgumentException
      */
     public function setList(DataList $list)
@@ -128,7 +136,7 @@ class AssetGalleryField extends FormField
     }
 
     /**
-     * Handles routing to a file or folder.
+     * Handles routing to a file.
      *
      * @param SS_HTTPRequest $request
      *
@@ -148,16 +156,19 @@ class AssetGalleryField extends FormField
      */
     public function fetch(SS_HTTPRequest $request)
     {
-        $params = $request->getVars();
+        $params = $request->postVars();
         $items = array();
 
-        if (empty($params['id'])) {
+        if (!strlen(isset($params['id']) && strlen($params['id']))) {
             $this->httpError(400);
         }
-
+        
         // TODO Limit results to avoid running out of memory (implement client-side pagination)
         $files = $this->getList()->filter('ParentID', $params['id']);
+        $parent = $this->getList()->filter('ID', $params['id']);
 
+        $parentId = count($parent) ? $parent->first()->ParentID : null;
+        
         if ($files) {
             foreach ($files as $file) {
                 if (!$file->canView()) {
@@ -173,9 +184,37 @@ class AssetGalleryField extends FormField
         $response->setBody(json_encode(array(
             'files' => $items,
             'count' => count($items),
+            'parent' => $parentId
         )));
 
         return $response;
+    }
+    
+    /**
+     * Fetches a collection of files by ParentID.
+     *
+     * @param SS_HTTPRequest $request
+     *
+     * @return SS_HTTPResponse
+     */
+    public function fetchFile(SS_HTTPRequest $request)
+    {
+        $params = $request->postVars();
+        $parentID = $this->getList()->filter('ID', $params['id'])->first()->ParentID;
+        
+        $fetchURL = $this->getFetchURL();
+        $postVars = array(
+            'id' => $parentID
+        );
+
+        $response = new SS_HTTPRequest(
+            'POST',
+            $fetchURL,
+            array(),
+            $postVars
+        );
+
+        return $this->fetch($response);
     }
 
     /**
@@ -428,8 +467,8 @@ class AssetGalleryField extends FormField
 
         $path = $this->config()->defaultPath;
 
-        if ($this->getCurrentPath() !== null) {
-            $path = $this->getCurrentPath();
+        if ($this->getCurrentFolder() !== null) {
+            $path = $this->getCurrentFolder();
         }
 
         if (empty($path)) {
@@ -456,10 +495,12 @@ class AssetGalleryField extends FormField
         Requirements::javascript(ASSET_ADMIN_DIR . "/javascript/dist/bundle.js");
 
         $fetchURL = $this->getFetchURL();
+        $fetchFileURL = $this->getFetchFileURL();
         $searchURL = $this->getSearchURL();
         $updateURL = $this->getUpdateURL();
         $deleteURL = $this->getDeleteURL();
-        $initialFolder = $this->getCurrentPath();
+        $initialFolder = $this->getCurrentFolder();
+        $idFromURL = $this->getIdFromURL();
         $limit = $this->getLimit();
         $bulkActions = $this->getBulkActions();
 
@@ -469,10 +510,12 @@ class AssetGalleryField extends FormField
             data-asset-gallery-bulk-actions='{$bulkActions}'
             data-asset-gallery-limit='{$limit}'
             data-asset-gallery-fetch-url='{$fetchURL}'
+            data-asset-gallery-fetch-file-url='{$fetchFileURL}'
             data-asset-gallery-search-url='{$searchURL}'
             data-asset-gallery-update-url='{$updateURL}'
             data-asset-gallery-delete-url='{$deleteURL}'
             data-asset-gallery-initial-folder='{$initialFolder}'
+            data-asset-gallery-id-from-url='{$idFromURL}'
             ></div>";
     }
 
@@ -482,6 +525,14 @@ class AssetGalleryField extends FormField
     protected function getFetchURL()
     {
         return Controller::join_links($this->Link(), 'fetch');
+    }
+    
+    /**
+     * @return string
+     */
+    protected function getFetchFileURL()
+    {
+        return Controller::join_links($this->Link(), 'fetchFile');
     }
 
     /**
@@ -511,19 +562,34 @@ class AssetGalleryField extends FormField
     /**
      * @return string
      */
-    public function getCurrentPath()
+    public function getCurrentFolder()
     {
-        return $this->currentPath;
+        return $this->currentFolder;
+    }
+    
+    /**
+     * @return string
+     */
+    public function getIdFromURL()
+    {
+        if($this->idFromURL) {
+            return $this->idFromURL;
+        }
+
+        $getIdFromRequest = $this->getForm()->getController()->getRequest()->param('ID');
+
+        return $getIdFromRequest;
     }
 
     /**
-     * @param string $currentPath
+     * Sets the folder being requested.
      *
-     * @return $this
+     * @param int ID - The ID of the folder being set.
+     * @return AssetGalleryField
      */
-    public function setCurrentPath($currentPath)
+    public function setCurrentFolder($currentFolder)
     {
-        $this->currentPath = $currentPath;
+        $this->currentFolder = $currentFolder;
 
         return $this;
     }

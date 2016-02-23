@@ -27,10 +27,13 @@ $.entwine('ss', function($) {
 		onadd: function () {
 			const store = configureStore();
 			const galleryProps = getGalleryProps();
+			
 
 			ReactDOM.render(
 				<Provider store={store}>
-					<AssetAdminContainer>
+					<AssetAdminContainer 
+						initialFolder={this.data('asset-gallery-initial-folder')}
+						idFromURL={this.data('asset-gallery-id-from-url')} >
 						<GalleryContainer {...galleryProps} />
 						<EditorContainer route={CONSTANTS.EDITING_ROUTE} />
 					</AssetAdminContainer>

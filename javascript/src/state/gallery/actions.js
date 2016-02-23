@@ -160,3 +160,17 @@ export function setViewingFolder(viewingFolder) {
         });
     }
 }
+
+/**
+ * Sets the parentID for the currently viewed folder.
+ *
+ * @param id parentID
+ */
+export function setParentFolderId(parentFolderID) {
+    return (dispatch, getState) => {
+        return dispatch({
+            type: GALLERY.SET_PARENT_FOLDER_ID,
+            payload: { parentFolderID }
+        });
+    }
+}

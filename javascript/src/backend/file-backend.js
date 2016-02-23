@@ -3,10 +3,11 @@ import Events from 'events';
 
 export default class FileBackend extends Events {
 
-	constructor(fetch_url, search_url, update_url, delete_url, limit, bulkActions, $folder, currentFolder) {
+	constructor(fetch_url, fetchFile_url, search_url, update_url, delete_url, limit, bulkActions, $folder, currentFolder) {
 		super();
 
 		this.fetch_url = fetch_url;
+		this.fetchFile_url = fetchFile_url;
 		this.search_url = search_url;
 		this.update_url = update_url;
 		this.delete_url = delete_url;
@@ -30,7 +31,24 @@ export default class FileBackend extends Events {
 
 		this.page = 1;
 
-		return this.request('POST', this.fetch_url, { id: id }).then((json) => {
+		return this.request('POST', this.fetch_url, { id: id, limit: this.limit }).then((json) => {
+			this.emit('onFetchData', json);
+		});
+	}
+
+	/**
+	 * @func fetchFile
+	 * @param number id - the id of the file currently being edited
+	 * @desc Fetches a collection of sibling files given an id.
+	 */
+	fetchFile(id) {
+		if (typeof id === 'undefined') {
+			return;
+		}
+		
+		this.page = 1;
+
+		return this.request('POST', this.fetchFile_url, { id: id, limit: this.limit }).then((json) => {
 			this.emit('onFetchData', json);
 		});
 	}
@@ -115,10 +133,6 @@ export default class FileBackend extends Events {
 
 		if (this.name && this.name.trim() !== '') {
 			defaults.name = decodeURIComponent(this.name);
-		}
-
-		if (this.folder && this.folder.trim() !== '') {
-			defaults.folder = decodeURIComponent(this.folder);
 		}
 
 		if (this.createdFrom && this.createdFrom.trim() !== '') {

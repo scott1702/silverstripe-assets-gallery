@@ -21,6 +21,7 @@ class AssetAdminContainer extends SilverStripeComponent {
 
         this.backend = new FileBackend(
             $componentWrapper.data('asset-gallery-fetch-url'),
+            $componentWrapper.data('asset-gallery-fetch-file-url'),
             $componentWrapper.data('asset-gallery-search-url'),
             $componentWrapper.data('asset-gallery-update-url'),
             $componentWrapper.data('asset-gallery-delete-url'),
@@ -40,29 +41,55 @@ class AssetAdminContainer extends SilverStripeComponent {
 
     componentDidMount() {
         super.componentDidMount();
+        
+        
+        if (this.props.idFromURL && this.props.idFromURL !== this.props.initialFolder) {
+            // If the url is to edit a specific file.
+            // Doing this because the gallery view and the edit view are handled
+            // by separate SilverStripe controllers. 
+            // When the AssetGalleryField becomes the entire section we can handle this differently
+            this.backend
+                .fetchFile(this.props.idFromURL)
+                .done((data, status, xhr) => {
+                    // Handle the initial payload from the FileBackend.
+                    // This handler will be called after this.handleBackendFetch
 
-        this.backend
-            .search()
-            .done((data, status, xhr) => {
-                // Handle the initial payload from the FileBackend.
-                // This handler will be called after this.handleBackendSearch
+                    const route = new window.ss.router.Route(CONSTANTS.EDITING_ROUTE);
+                    const currentPath = window.ss.router.current;
+                    const files = this.props.assetAdmin.gallery.files;
 
-                const route = new window.ss.router.Route(CONSTANTS.EDITING_ROUTE);
-                const currentPath = window.ss.router.current;
-                const files = this.props.assetAdmin.gallery.files;
+                    var params = {};
 
-                var params = {};
+                    // If we're on a file edit route we need to set the file currently being edited.
+                    if (route.match(currentPath, params)) {
+                        this.props.actions.setEditing(files.filter((file) => file.id === parseInt(params.id, 10))[0]);
+                    }
 
-                // If we're on a file edit route we need to set the file currently being edited.
-                if (route.match(currentPath, params)) {
-                    this.props.actions.setEditing(files.filter((file) => file.id === parseInt(params.id, 10))[0]);
-                }
+                    this.props.actions.setPath(currentPath);
 
-                // If we're viewing a folder get the 'up level' id and set it in state.
+                }.bind(this));;
+        } else {
+            this.backend
+                .fetch(this.props.initialFolder)
+                .done((data, status, xhr) => {
+                    // Handle the initial payload from the FileBackend.
+                    // This handler will be called after this.handleBackendFetch
 
-                this.props.actions.setPath(currentPath);
+                    const route = new window.ss.router.Route(CONSTANTS.EDITING_ROUTE);
+                    const currentPath = window.ss.router.current;
+                    const files = this.props.assetAdmin.gallery.files;
 
-            }.bind(this));
+                    var params = {};
+
+                    // If we're on a file edit route we need to set the file currently being edited.
+                    if (route.match(currentPath, params)) {
+                        this.props.actions.setEditing(files.filter((file) => file.id === parseInt(params.id, 10))[0]);
+                    }
+
+                    this.props.actions.setPath(currentPath);
+
+                }.bind(this));
+        }
 
         this.backend.addListener('onFetchData', this.handleBackendFetch);
         this.backend.addListener('onSaveData', this.handleBackendSave);
@@ -97,13 +124,7 @@ class AssetAdminContainer extends SilverStripeComponent {
     }
 
     handleEnterRoute(ctx, next) {
-        
         this.props.actions.setPath(ctx.path);
-        // Set path params
-        // params = {
-        //   folderId: ctx.params.id
-        // }
-        //
         next();
     }
 
@@ -113,6 +134,7 @@ class AssetAdminContainer extends SilverStripeComponent {
     }
 
     handleBackendFetch(data) {
+        this.props.actions.setParentFolderId(data.parent);
         this.props.actions.addFiles(data.files, data.count);
     }
 
