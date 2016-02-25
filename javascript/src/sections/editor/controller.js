@@ -8,12 +8,12 @@ import * as galleryActions from '../../state/gallery/actions';
 import TextFieldComponent from '../../components/text-field/index';
 import CONSTANTS from '../../constants';
 
-class EditorContainer extends SilverStripeComponent {
+export class EditorContainer extends SilverStripeComponent {
 	constructor(props) {
 		super(props);
 
 		const file = this.props.file;
-
+		
 		this.fields = [
 			{
 				'label': 'Title',
@@ -52,7 +52,7 @@ class EditorContainer extends SilverStripeComponent {
 	}
 
 	onFileSave(event) {
-		this.props.onFileSave(this.props.file.id, this.props.editorFields);
+		this.props.backend.save(this.props.file.id, this.props.editorFields);
 
 		event.stopPropagation();
 		event.preventDefault();
@@ -132,7 +132,7 @@ class EditorContainer extends SilverStripeComponent {
 						key={i}
 						label={field.label}
 						name={field.name}
-						value={this.props.file[field.name]}
+						value={field.value}
 						onChange={this.onFieldChange} />
 			})}
 			<div>

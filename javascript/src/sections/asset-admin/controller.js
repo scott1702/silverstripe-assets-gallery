@@ -62,11 +62,25 @@ class AssetAdminContainer extends SilverStripeComponent {
 
                     // If we're on a file edit route we need to set the file currently being edited.
                     if (route.match(currentPath, params)) {
-                        this.props.actions.setEditing(files.filter((file) => file.id === parseInt(params.id, 10))[0]);
+                        const file = files.filter((file) => file.id === parseInt(params.id, 10))[0];
+                        this.props.actions.setEditing(file);
+                        
+                        //setEditorFields when EditorContainer is hard loaded to update after AJAX request is complete
+                        this.props.actions.setEditorFields([
+                			{
+                				'label': 'Title',
+                				'name': 'title',
+                				'value': file.title
+                			},
+                			{
+                				'label': 'Filename',
+                				'name': 'basename',
+                				'value': file.basename
+                			}
+                		]);
                     }
 
                     this.props.actions.setPath(currentPath);
-
                 }.bind(this));;
         } else {
             this.backend
@@ -139,6 +153,7 @@ class AssetAdminContainer extends SilverStripeComponent {
     }
 
     handleBackendSave(id, values) {
+        window.ss.router.show(CONSTANTS.HOME_ROUTE);
         this.props.actions.setEditing(null);
         this.props.actions.updateFile(id, { title: values.title, basename: values.basename });
     }
