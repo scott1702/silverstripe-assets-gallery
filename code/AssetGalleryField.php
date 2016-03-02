@@ -11,6 +11,8 @@ use Requirements;
 use SS_HTTPRequest;
 use SS_HTTPResponse;
 use DataList;
+use Convert;
+use SilverStripe\Filesystem\Storage\AssetContainer;
 
 /**
  * Class AssetGalleryField
@@ -28,7 +30,7 @@ class AssetGalleryField extends FormField
         'getFilesBySiblingID',
         'search',
         'update',
-        'delete',
+        'delete'
     );
 
     private static $url_handlers = array(
@@ -37,7 +39,7 @@ class AssetGalleryField extends FormField
         'GET getFilesBySiblingID' => 'getFilesBySiblingID',
         'GET search' => 'search',
         'PUT update' => 'update',
-        'DELETE delete' => 'delete',
+        'DELETE delete' => 'delete'
     );
 
     /**
@@ -158,6 +160,7 @@ class AssetGalleryField extends FormField
         $params = $request->postVars();
         $items = array();
         $parentId = null;
+        $folderID = $params['id'];
 
         if (!isset($params['id']) && !strlen($params['id'])) {
             $this->httpError(400);
@@ -185,7 +188,8 @@ class AssetGalleryField extends FormField
         $response->setBody(json_encode([
             'files' => $items,
             'count' => count($items),
-            'parent' => $parentId
+            'parent' => $parentId,
+            'folderID' => $folderID
         ]));
 
         return $response;

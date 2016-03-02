@@ -79,7 +79,7 @@ class EditorContainer extends SilverStripeComponent {
 			return null;
 		}
 
-		return <div className='editor'>
+		return <div className='editor-component'>
 			<div className='CompositeField composite cms-file-info nolabel'>
 				<div className='CompositeField composite cms-file-info-preview nolabel'>
 					<img className='thumbnail-preview' src={this.props.file.url} />
