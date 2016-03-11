@@ -223,7 +223,8 @@
   overflow: hidden; }
   .asset-gallery .item__upload-progress__bar {
     height: 100%;
-    background: #29abe2; }
+    background: #29abe2;
+    width: 0%; }
 
 .asset-gallery .item__title {
   padding: 11px 28px 11px 12px;

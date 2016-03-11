@@ -34,6 +34,9 @@ class DropzoneComponent extends SilverStripeComponent {
 
         // When file file is sent to the server.
         Dropzone.prototype.defaultOptions.sending = this.handleSending.bind(this);
+        
+        // When a file's upload progress changes
+        Dropzone.prototype.defaultOptions.uploadprogress = this.handleUploadProgress.bind(this);
 
         // The text used before any files are dropped
         Dropzone.prototype.defaultOptions.dictDefaultMessage = i18n._t('AssetGalleryField.DROPZONE_DEFAULT_MESSAGE');
@@ -155,6 +158,12 @@ class DropzoneComponent extends SilverStripeComponent {
 
         if (typeof this.props.handleDragLeave === 'function') {
             this.props.handleDragLeave(event, componentNode);
+        }
+    }
+
+    handleUploadProgress(file, progress, bytesSent) {
+        if (typeof this.props.handleUploadProgress === 'function') {
+            this.props.handleUploadProgress(file, progress, bytesSent);
         }
     }
 

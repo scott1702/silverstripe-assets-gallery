@@ -139,6 +139,15 @@ class FileComponent extends SilverStripeComponent {
 		event.stopPropagation();
 		this.props.handleCancelUpload(this.props.item);
 	}
+	
+	getProgressBarProps() {
+		return { 
+			className: "item__upload-progress__bar",
+			style: {
+				width: this.props.item.progress + '%'
+			}
+		} 
+	}
 
 	render() {
 		var actionButton, uploadProgress = null;
@@ -154,8 +163,9 @@ class FileComponent extends SilverStripeComponent {
 				data-dz-remove>
 			</button>;
 			
-			uploadProgress = <div className='item__upload-progress'>
-				<div className="item__upload-progress__bar" data-dz-uploadprogress></div></div>;
+			const progressBarProps = this.getProgressBarProps();
+			
+			uploadProgress = <div className='item__upload-progress'><div {...progressBarProps}></div></div>;
 		} else {
 			actionButton = <button
 				className='item__actions__action item__actions__action--select [ font-icon-tick ]'
@@ -177,6 +187,7 @@ class FileComponent extends SilverStripeComponent {
 				<div ref="thumbnail" className={this.getThumbnailClassNames()} style={this.getThumbnailStyles()}>
 					<div className='item--overlay [ font-icon-edit ]'>View</div>
 				</div>
+				{uploadProgress}
 				{this.getErrorMessage()}
 				<div className='item__title' ref="title">
 					{this.props.item.title}
@@ -195,7 +206,8 @@ FileComponent.propTypes = {
 		category: React.PropTypes.string.isRequired,
 		id: React.PropTypes.number.isRequired,
 		url: React.PropTypes.string,
-		title: React.PropTypes.string.isRequired
+		title: React.PropTypes.string.isRequired,
+		progress: React.PropTypes.number
 	}),
 	selected: React.PropTypes.bool.isRequired,
 	spaceKey: React.PropTypes.number,

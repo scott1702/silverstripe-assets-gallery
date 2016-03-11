@@ -76,6 +76,7 @@ export class GalleryContainer extends SilverStripeComponent {
 		this.handleToggleSelect = this.handleToggleSelect.bind(this);
 		this.handleAddedFile = this.handleAddedFile.bind(this);
 		this.handleCancelUpload = this.handleCancelUpload.bind(this);
+		this.handleUploadProgress = this.handleUploadProgress.bind(this);
 		this.handleSending = this.handleSending.bind(this);
 		this.handleItemDelete = this.handleItemDelete.bind(this);
 		this.handleBackClick = this.handleBackClick.bind(this);
@@ -165,6 +166,10 @@ export class GalleryContainer extends SilverStripeComponent {
 	handleSending(file, xhr, formData) {
 		this.props.actions.queuedFiles.updateQueuedFile(file.name, file.size, { xhr });
 	}
+	
+	handleUploadProgress(file, progress, bytesSent) {
+		this.props.actions.queuedFiles.updateQueuedFile(file.name, file.size, { progress });
+	}
 
 	render() {
 		const dropzoneOptions = {
@@ -198,6 +203,7 @@ export class GalleryContainer extends SilverStripeComponent {
 				handleError={this.props.actions.queuedFiles.failUpload}
 				handleSuccess={this.handleSuccessfulUpload}
 				handleSending={this.handleSending}
+				handleUploadProgress={this.handleUploadProgress}
 				folderID={this.props.gallery.folderID}
 				options={dropzoneOptions}
 				securityID={securityID}
